@@ -23,5 +23,10 @@ data AST =
 data Error =
     None |
     IllegalCharError String |
-    IllegalSyntaxError String
+    InvalidSyntaxError String
+    deriving (Eq, Show)
+
+data ParseResult =
+    AST |
+    ParseError Error
     deriving (Eq, Show)

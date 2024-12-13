@@ -13,7 +13,7 @@ tokenize (c:cs)
     | c == ')' = let (tokens, err) = tokenize cs in (TRParen : tokens, err)
     | c `elem` ['0'..'9'] = tokenizeNumber (c:cs)
     | c == ' ' = tokenize cs
-    | otherwise = ([], IllegalCharError ("invalid: " ++ [c]))
+    | otherwise = ([], IllegalCharError ("Invalid: " ++ [c]))
 
 tokenizeNumber :: String -> ([Token], Error)
 tokenizeNumber str = do
