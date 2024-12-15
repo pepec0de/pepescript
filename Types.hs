@@ -18,7 +18,7 @@ data AST =
     Empty |
     NumNode Token |
     BinOpNode AST Token AST
-    deriving (Show)
+    deriving (Eq, Show)
 
 data Error =
     None |
@@ -27,6 +27,6 @@ data Error =
     deriving (Eq, Show)
 
 data ParseResult =
-    AST |
-    ParseError Error
+    Success AST |
+    Failure Error
     deriving (Eq, Show)

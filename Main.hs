@@ -14,6 +14,7 @@ main = do
     if tokens /= [] && error == None then do
         let ast = parse tokens -- (ast, error)
         print ast
-    else
+    else do
+        putStr "ERR "
         print error
     main

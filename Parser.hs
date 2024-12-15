@@ -12,43 +12,73 @@ factor  : INT | FLOAT -> NumNode
 
 -}
 -- Parser: Parses a list of tokens into an AST
-parse :: [Token] -> AST
+parse :: [Token] -> ParseResult
 parse tokens = do
     let (res, []) = parse_expr tokens
-    res
-
-parse_expr :: [Token] -> (AST, [Token])
+    if is_success res then
+        res
+    else
+        res
+        
+parse_expr :: [Token] -> (ParseResult, [Token])
 parse_expr tokens = do
-    let (left, new_tokens) = parse_term tokens
-    (build_expr_ast left new_tokens)
+    let (res_left, new_tokens) = parse_term tokens
+    if is_success res_left then
+        (build_expr_ast (get_ast res_left) new_tokens)
+    else
+        (res_left, [])
 
-build_expr_ast :: AST -> [Token] -> (AST, [Token])
+build_expr_ast :: AST -> [Token] -> (ParseResult, [Token])
 build_expr_ast left (TPlus:tokens) = do
-    let (right, new_tokens) = parse_term tokens
-    build_expr_ast (BinOpNode left TPlus right) new_tokens
+    let (res_right, new_tokens) = parse_term tokens
+    if is_success res_right then
+        build_expr_ast (BinOpNode left TPlus (get_ast res_right)) new_tokens
+    else
+        (res_right, [])
 
 build_expr_ast left (TMinus:tokens) = do
-    let (right, new_tokens) = parse_term tokens
-    build_expr_ast (BinOpNode left TMinus right) new_tokens
-build_expr_ast left tokens = (left, tokens)
+    let (res_right, new_tokens) = parse_term tokens
+    if is_success res_right then
+        build_expr_ast (BinOpNode left TMinus (get_ast res_right)) new_tokens
+    else
+        (res_right, [])
+
+build_expr_ast left tokens = (Success left, tokens)
 
 -- Parse a term (supports multiplication and division)
-parse_term :: [Token] -> (AST, [Token])
+parse_term :: [Token] -> (ParseResult, [Token])
 parse_term tokens = do
-    let (left, new_tokens) = parse_factor tokens
-    build_term_ast left new_tokens
+    let (res_left, new_tokens) = parse_factor tokens
+    if is_success res_left then
+        build_term_ast (get_ast res_left) new_tokens
+    else
+        (res_left, [])
 
-build_term_ast :: AST -> [Token] -> (AST, [Token])
+build_term_ast :: AST -> [Token] -> (ParseResult, [Token])
 build_term_ast left (TMult:tokens) = do
-    let (right, new_tokens) = parse_factor tokens
-    build_term_ast (BinOpNode left TMult right) new_tokens
+    let (res_right, new_tokens) = parse_factor tokens
+    if is_success res_right then
+        build_term_ast (BinOpNode left TMult (get_ast res_right)) new_tokens
+    else
+        (res_right, [])
+
 build_term_ast left (TDiv:tokens) = do
-    let (right, new_tokens) = parse_factor tokens
-    build_term_ast (BinOpNode left TDiv right) new_tokens
-build_term_ast left tokens = (left, tokens)
+    let (res_right, new_tokens) = parse_factor tokens
+    if is_success res_right then
+        build_term_ast (BinOpNode left TDiv (get_ast res_right)) new_tokens
+    else
+        (res_right, [])
+build_term_ast left tokens = (Success left, tokens)
 
 -- Parse a factor (supports integers)
-parse_factor :: [Token] -> (AST, [Token])
-parse_factor ((TInt n):tokens) = (NumNode (TInt n), tokens)
-parse_factor ((TFloat n):tokens) = (NumNode (TFloat n), tokens)
---parse_factor _ = (Empty, [], InvalidSyntaxError "Expected a number")
+parse_factor :: [Token] -> (ParseResult, [Token])
+parse_factor ((TInt n):tokens) = (Success (NumNode (TInt n)), tokens)
+parse_factor ((TFloat n):tokens) = (Success (NumNode (TFloat n)), tokens)
+parse_factor _ = (Failure (InvalidSyntaxError "Expected a number"), [])
+
+is_success :: ParseResult -> Bool
+is_success (Success _) = True
+is_success _ = False
+
+get_ast :: ParseResult -> AST
+get_ast (Success ast) = ast
