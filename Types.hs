@@ -17,7 +17,8 @@ data Token =
 data AST =
     Empty |
     NumNode Token |
-    BinOpNode AST Token AST
+    BinOpNode AST Token AST |
+    UnaryOpNode Token AST
     deriving (Eq, Show)
 
 data Error =

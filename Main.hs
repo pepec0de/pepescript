@@ -11,6 +11,7 @@ main = do
     hFlush stdout
     input <- getLine
     let (tokens, error) = tokenize input
+    print tokens
     if tokens /= [] && error == None then do
         let ast = parse tokens -- (ast, error)
         print ast

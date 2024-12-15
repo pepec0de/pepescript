@@ -3,7 +3,7 @@ module Tokenizer where
 import Types
 
 tokenize :: String -> ([Token], Error)
-tokenize "" = ([], None)
+tokenize "" = ([TEOF], None)
 tokenize (c:cs)
     | c == '+' = let (tokens, err) = tokenize cs in (TPlus : tokens, err)
     | c == '-' = let (tokens, err) = tokenize cs in (TMinus : tokens, err)
