@@ -16,7 +16,7 @@ tokenize (c:cs)
     | c == ')' = let (tokens, err) = tokenize cs in (TRParen : tokens, err)
     | c `elem` ['0'..'9'] = tokenizeNumber (c:cs)
     | c == '=' = tokenizeEq cs
-    -- | c == '!' = tokenizeNe cs
+    | c == '!' = tokenizeNotEq cs
     | c == '<' = tokenizeLess cs
     | c == '>' = tokenizeGreat cs
     | otherwise = ([], IllegalCharError ("Invalid: " ++ [c]))
@@ -38,6 +38,12 @@ tokenizeEq (c:cs) =
     else
         let (tokens, err) = tokenize (c:cs) in (TEq : tokens, err)
 
+tokenizeNotEq (c:cs) =
+    if c == '=' then
+        let (tokens, err) = tokenize cs in (TNotEq : tokens, err)
+    else
+        let (tokens, err) = tokenize (c:cs) in (TNot : tokens, err)
+        
 tokenizeLess :: String -> ([Token], Error)
 tokenizeLess (c:cs) =
     if c == '=' then

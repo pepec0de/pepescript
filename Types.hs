@@ -11,6 +11,7 @@ data Token =
     TDiv |
     TLParen |
     TRParen |
+    TNot | -- !
     TEq | -- =
     TEqEq | -- ==
     TNotEq | -- !=
