@@ -39,14 +39,14 @@ build_expr_ast :: AST -> [Token] -> (ParseResult, [Token])
 build_expr_ast left (TPlus:tokens) = do
     let (res_right, new_tokens) = parse_term tokens
     if is_success res_right then
-        build_expr_ast (BinOpNode left TPlus (get_ast res_right)) new_tokens
+        build_expr_ast (BinOpNode TPlus left (get_ast res_right)) new_tokens
     else
         (res_right, [])
 
 build_expr_ast left (TMinus:tokens) = do
     let (res_right, new_tokens) = parse_term tokens
     if is_success res_right then
-        build_expr_ast (BinOpNode left TMinus (get_ast res_right)) new_tokens
+        build_expr_ast (BinOpNode TMinus left (get_ast res_right)) new_tokens
     else
         (res_right, [])
 
@@ -65,14 +65,14 @@ build_term_ast :: AST -> [Token] -> (ParseResult, [Token])
 build_term_ast left (TMult:tokens) = do
     let (res_right, new_tokens) = parse_factor tokens
     if is_success res_right then
-        build_term_ast (BinOpNode left TMult (get_ast res_right)) new_tokens
+        build_term_ast (BinOpNode TMult left (get_ast res_right)) new_tokens
     else
         (res_right, [])
 
 build_term_ast left (TDiv:tokens) = do
     let (res_right, new_tokens) = parse_factor tokens
     if is_success res_right then
-        build_term_ast (BinOpNode left TDiv (get_ast res_right)) new_tokens
+        build_term_ast (BinOpNode TDiv left (get_ast res_right)) new_tokens
     else
         (res_right, [])
 build_term_ast left tokens = (Success left, tokens)
@@ -103,7 +103,7 @@ parse_factor (TLParen:tokens) = do
         (Failure (InvalidSyntaxError "Expected expression"), [])
     else
         if (new_tokens!!0) == TRParen then
-            (Success (get_ast res), (tail new_tokens)) -- tail gives Warning
+            (Success (get_ast res), (tail new_tokens)) -- tail gives Warning TODO: fix it
         else
             (Failure (InvalidSyntaxError "Expected a \')\'"), [])
 

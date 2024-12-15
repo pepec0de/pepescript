@@ -16,9 +16,9 @@ data Token =
 
 data AST =
     Empty |
-    NumNode Token |
-    BinOpNode AST Token AST |
-    UnaryOpNode Token AST
+    NumNode Token | -- NumNode (Number)
+    BinOpNode Token AST AST | -- BinOpNode(Operator, left tree, right tree)
+    UnaryOpNode Token AST -- UnaryOpNode(Operador, tree)
     deriving (Eq, Show)
 
 data Error =
