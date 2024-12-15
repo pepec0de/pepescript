@@ -5,6 +5,9 @@ import Types
 tokenize :: String -> ([Token], Error)
 tokenize "" = ([TEOF], None)
 tokenize (c:cs)
+    | c == ' ' = tokenize cs
+    | c == '\n' = tokenize cs
+    | c == '\t' = tokenize cs
     | c == '+' = let (tokens, err) = tokenize cs in (TPlus : tokens, err)
     | c == '-' = let (tokens, err) = tokenize cs in (TMinus : tokens, err)
     | c == '*' = let (tokens, err) = tokenize cs in (TMult : tokens, err)
@@ -12,7 +15,10 @@ tokenize (c:cs)
     | c == '(' = let (tokens, err) = tokenize cs in (TLParen : tokens, err)
     | c == ')' = let (tokens, err) = tokenize cs in (TRParen : tokens, err)
     | c `elem` ['0'..'9'] = tokenizeNumber (c:cs)
-    | c == ' ' = tokenize cs
+    | c == '=' = tokenizeEq cs
+    -- | c == '!' = tokenizeNe cs
+    | c == '<' = tokenizeLess cs
+    | c == '>' = tokenizeGreat cs
     | otherwise = ([], IllegalCharError ("Invalid: " ++ [c]))
 
 tokenizeNumber :: String -> ([Token], Error)
@@ -24,3 +30,24 @@ tokenizeNumber str = do
     else do
         let (tokens, err) = tokenize rest
         (TFloat (read num :: Float) : tokens, err)
+
+tokenizeEq :: String -> ([Token], Error)
+tokenizeEq (c:cs) =
+    if c == '=' then
+        let (tokens, err) = tokenize cs in (TEqEq : tokens, err)
+    else
+        let (tokens, err) = tokenize (c:cs) in (TEq : tokens, err)
+
+tokenizeLess :: String -> ([Token], Error)
+tokenizeLess (c:cs) =
+    if c == '=' then
+        let (tokens, err) = tokenize cs in (TLtEq : tokens, err)
+    else
+        let (tokens, err) = tokenize (c:cs) in (TLt : tokens, err)
+
+tokenizeGreat :: String -> ([Token], Error)
+tokenizeGreat (c:cs) =
+    if c == '=' then
+        let (tokens, err) = tokenize cs in (TGtEq : tokens, err)
+    else
+        let (tokens, err) = tokenize (c:cs) in (TGt : tokens, err)

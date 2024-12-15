@@ -11,12 +11,13 @@ data Token =
     TDiv |
     TLParen |
     TRParen |
-    TAssign | -- =
-    TEq | -- ==
+    TEq | -- =
+    TEqEq | -- ==
+    TNotEq | -- !=
     TGt | -- >
-    TGe | -- >=
+    TGtEq | -- >=
     TLt | -- <
-    TLe | -- <=
+    TLtEq | -- <=
     TEOF
     deriving (Eq, Show)
 
@@ -47,4 +48,7 @@ data Number =
 data RuntimeResult =
     RTSuccess Number |
     RTFailure Error 
+    deriving (Eq, Show)
+
+data Context = Context String Context -- display_name parent_context
     deriving (Eq, Show)

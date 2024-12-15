@@ -9,7 +9,7 @@ import System.IO
 main :: IO()
 main = do
     putStr "> "
-    hFlush stdout
+    hFlush stdout -- flush the buffer
     input <- getLine
     let (tokens, error) = tokenize input
     print tokens
