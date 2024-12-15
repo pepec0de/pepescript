@@ -11,6 +11,12 @@ data Token =
     TDiv |
     TLParen |
     TRParen |
+    TAssign | -- =
+    TEq | -- ==
+    TGt | -- >
+    TGe | -- >=
+    TLt | -- <
+    TLe | -- <=
     TEOF
     deriving (Eq, Show)
 
@@ -33,7 +39,12 @@ data ParseResult =
     Failure Error
     deriving (Eq, Show)
 
+data Number =
+    Int Int |
+    Float Float
+    deriving (Eq, Show)
+
 data RuntimeResult =
-    RTSuccess Num |
+    RTSuccess Number |
     RTFailure Error 
     deriving (Eq, Show)

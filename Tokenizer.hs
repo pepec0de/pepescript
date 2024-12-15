@@ -23,4 +23,4 @@ tokenizeNumber str = do
         (TFloat ((read num) :: Float) : tokens, err)
     else do
         let (tokens, err) = tokenize rest
-        (TInt (read num :: Int) : tokens, err)
+        (TFloat (read num :: Float) : tokens, err)
