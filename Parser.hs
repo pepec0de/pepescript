@@ -111,6 +111,7 @@ parse_factor (TRParen:[]) = (Failure (InvalidSyntaxError "Unexpected \')\'"), []
 
 parse_factor _ = (Failure (InvalidSyntaxError "Expected a number"), [])
 
+-- Helper function for ParseResult
 is_success :: ParseResult -> Bool
 is_success (Success _) = True
 is_success _ = False

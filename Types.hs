@@ -24,10 +24,16 @@ data AST =
 data Error =
     None |
     IllegalCharError String |
-    InvalidSyntaxError String
+    InvalidSyntaxError String |
+    RuntimeError String
     deriving (Eq, Show)
 
 data ParseResult =
     Success AST |
     Failure Error
+    deriving (Eq, Show)
+
+data RuntimeResult =
+    RTSuccess Num |
+    RTFailure Error 
     deriving (Eq, Show)
