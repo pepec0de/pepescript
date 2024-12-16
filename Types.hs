@@ -9,6 +9,7 @@ data Token =
     TMinus |
     TMult |
     TDiv |
+    TPow | -- ^
     TLParen |
     TRParen |
     TNot | -- !
