@@ -2,10 +2,10 @@ module Interpreter where
 
 import Types
 
-visit :: AST -> RuntimeResult
-visit (NumNode tok) = (RTSuccess (get_token_number tok))
-visit (UnaryOpNode tok ast) = do
-    let ast_rt = visit ast
+visit :: AST -> Context -> RuntimeResult
+visit (NumNode tok) context = (RTSuccess (get_token_number tok))
+visit (UnaryOpNode tok ast) context = do
+    let ast_rt = visit ast context
     if is_success ast_rt then do
         let num = get_num ast_rt
         case tok of
@@ -15,9 +15,9 @@ visit (UnaryOpNode tok ast) = do
     else
         ast_rt
 
-visit (BinOpNode tok left right) = do
-    let left_rt = visit left
-    let right_rt = visit right
+visit (BinOpNode tok left right) context = do
+    let left_rt = visit left context
+    let right_rt = visit right context
     if (is_success left_rt) && (is_success right_rt) then do
         let left = (get_num left_rt)
         let right = (get_num right_rt)
@@ -30,7 +30,7 @@ visit (BinOpNode tok left right) = do
     else
         left_rt
 
-visit _ = (RTFailure (RuntimeError "Node implementation not implemented"))
+visit _ context = (RTFailure (RuntimeError "Node implementation not implemented"))
 
 get_token_number :: Token -> Number
 get_token_number (TInt num) = Int num

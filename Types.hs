@@ -51,5 +51,5 @@ data RuntimeResult =
     RTFailure Error 
     deriving (Eq, Show)
 
-data Context = Context String Context -- display_name parent_context
+data Context = NoParent | Context String Context -- display_name, parent_context
     deriving (Eq, Show)
