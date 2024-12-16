@@ -38,12 +38,13 @@ tokenizeEq (c:cs) =
     else
         let (tokens, err) = tokenize (c:cs) in (TEq : tokens, err)
 
+tokenizeNotEq :: String -> ([Token], Error)
 tokenizeNotEq (c:cs) =
     if c == '=' then
         let (tokens, err) = tokenize cs in (TNotEq : tokens, err)
     else
         let (tokens, err) = tokenize (c:cs) in (TNot : tokens, err)
-        
+
 tokenizeLess :: String -> ([Token], Error)
 tokenizeLess (c:cs) =
     if c == '=' then
