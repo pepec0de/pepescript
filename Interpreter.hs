@@ -26,6 +26,7 @@ visit (BinOpNode tok left right) context = do
             TMinus -> (RTSuccess (sub left right))
             TMult -> (RTSuccess (mult left right))
             TDiv -> (RTSuccess (mDiv left right))
+            TPow -> (RTSuccess (pow left right))
             _ -> (RTFailure (RuntimeError "Unrecognised token"))
     else
         left_rt
@@ -54,3 +55,6 @@ mult (Float a) (Float b) = Float (a*b)
 
 mDiv :: Number -> Number -> Number
 mDiv (Float a) (Float b) = Float (a/b)
+
+pow :: Number -> Number -> Number
+pow (Float a) (Float b) = Float (a**b)
