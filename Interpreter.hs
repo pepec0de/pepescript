@@ -12,6 +12,7 @@ visit (UnaryOpNode tok ast) context = do
         case tok of
             TPlus -> (RTSuccess num, context)
             TMinus -> (RTSuccess (mult (Float (-1)) num), context)
+            TNot -> (RTSuccess (n num), context)
             _ -> (RTFailure (RuntimeError "Invalid operator token for UnaryOpNode"), context)
     else
         (ast_rt, context)
@@ -28,6 +29,12 @@ visit (BinOpNode tok left right) context = do
             TMult -> (RTSuccess (mult left right), context)
             TDiv -> (RTSuccess (mDiv left right), context)
             TPow -> (RTSuccess (pow left right), context)
+            TEqEq -> (RTSuccess (eq left right), context)
+            TNotEq -> (RTSuccess (ne left right), context)
+            TGt -> (RTSuccess (gt left right), context)
+            TLt -> (RTSuccess (lt left right), context)
+            TGtEq -> (RTSuccess (gte left right), context)
+            TLtEq -> (RTSuccess (lte left right), context)
             _ -> (RTFailure (RuntimeError "Unrecognised token"), context)
     else
         (left_rt, context)
@@ -75,3 +82,25 @@ mDiv (Float a) (Float b) = Float (a/b)
 
 pow :: Number -> Number -> Number
 pow (Float a) (Float b) = Float (a**b)
+
+eq :: Number -> Number -> Number
+eq (Float a) (Float b) = if a == b then Float 1 else Float 0
+
+ne :: Number -> Number -> Number
+ne (Float a) (Float b) = if a /= b then Float 1 else Float 0
+
+gt :: Number -> Number -> Number
+gt (Float a) (Float b) = if a > b then Float 1 else Float 0
+
+lt :: Number -> Number -> Number
+lt (Float a) (Float b) = if a < b then Float 1 else Float 0
+
+gte :: Number -> Number -> Number
+gte (Float a) (Float b) = if a >= b then Float 1 else Float 0
+
+lte :: Number -> Number -> Number
+lte (Float a) (Float b) = if a <= b then Float 1 else Float 0
+
+n :: Number -> Number
+n (Float 0) = Float 1
+n _ = Float 0

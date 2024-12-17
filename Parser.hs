@@ -5,18 +5,23 @@ import Types
 {-
 Grammar
 
-expr    : TKeyword:let IDENTIFIER TEq expr 
-          term ((PLUS | MINUS) term)* -> BinOpNode [+, -]
+expr        : TKeyword:let IDENTIFIER TEq expr
+            : comp-expr ((AND | OR) comp-expr)*
 
-term    : factor ((MUL | DIV) factor)* -> BinOpNode [*, /]
+comp-expr   : NOT comp-expr
+            : arith-expr ( (== | <(=) | >(=) ) arith-expr)*
 
-factor  : (PLUS | MINUS) factor
-        : power
+arith-expr  : term ((PLUS | MINUS) term)* -> BinOpNode [+, -]
 
-power   : atom (POW factor)*
+term        : factor ((MUL | DIV) factor)* -> BinOpNode [*, /]
 
-atom    : INT | FLOAT -> NumNode
-        : LPAREN expr RPAREN
+factor      : (PLUS | MINUS) factor
+            : power
+
+power       : atom (POW factor)*
+
+atom        : INT | FLOAT -> NumNode
+            : LPAREN expr RPAREN
 -}
 
 -- Parser: Parses a list of tokens into an AST
@@ -53,7 +58,7 @@ parse_expr :: [Token] -> (ParseResult, [Token])
 parse_expr (TKeyword_let:tokens) = build_let_expr tokens
 
 parse_expr tokens = do
-    let (res_left, new_tokens) = parse_term tokens
+    let (res_left, new_tokens) = parse_comp_expr tokens
     if is_success res_left then
         (build_expr_ast (get_ast res_left) new_tokens)
     else
@@ -61,10 +66,54 @@ parse_expr tokens = do
 
 build_expr_ast :: AST -> [Token] -> (ParseResult, [Token])
 build_expr_ast left (tok:tokens)
+    | tok == TAnd || tok == TOr = do
+        let (res_right, new_tokens) = parse_comp_expr tokens
+        if is_success res_right then
+            (build_expr_ast (BinOpNode tok left (get_ast res_right)) new_tokens)
+        else
+            (res_right, [])
+    | otherwise = (ParseSuccess left, (tok:tokens))
+
+parse_comp_expr :: [Token] -> (ParseResult, [Token])
+parse_comp_expr (tok:tokens)
+    | tok == TNot = do
+        let (res, new_tokens) = parse_comp_expr tokens
+        if is_success res then
+            (ParseSuccess (UnaryOpNode TNot (get_ast res)), new_tokens)
+        else
+            (res, [])
+
+    | otherwise = do
+        let (res, new_tokens) = parse_arith_expr (tok:tokens)
+        if is_success res then
+            (build_comp_expr (get_ast res) new_tokens)
+        else
+            (res, [])
+
+build_comp_expr :: AST -> [Token] -> (ParseResult, [Token])
+build_comp_expr left (tok:tokens)
+    | tok `elem` [TEqEq, TNotEq, TLt, TLtEq, TGt, TGtEq] = do
+        let (res_right, new_tokens) = parse_comp_expr tokens
+        if is_success res_right then
+            build_comp_expr (BinOpNode tok left (get_ast res_right)) new_tokens
+        else
+            (res_right, [])
+    | otherwise = (ParseSuccess left, (tok:tokens))
+
+parse_arith_expr :: [Token] -> (ParseResult, [Token])
+parse_arith_expr tokens = do
+    let (res_left, new_tokens) = parse_term tokens
+    if is_success res_left then
+        (build_expr_ast (get_ast res_left) new_tokens)
+    else
+        (res_left, [])
+
+build_arith_expr_ast :: AST -> [Token] -> (ParseResult, [Token])
+build_arith_expr_ast left (tok:tokens)
     | tok == TPlus || tok == TMinus = do
         let (res_right, new_tokens) = parse_term tokens
         if is_success res_right then
-            build_expr_ast (BinOpNode tok left (get_ast res_right)) new_tokens
+            build_arith_expr_ast (BinOpNode tok left (get_ast res_right)) new_tokens
         else
             (res_right, [])
     | otherwise = (ParseSuccess left, (tok:tokens))
@@ -113,14 +162,14 @@ parse_factor (TPlus:tokens) = do
     if is_success res then
         (ParseSuccess (UnaryOpNode TPlus (get_ast res)), new_tokens)
     else
-        (res, new_tokens)
+        (res, [])
 
 parse_factor (TMinus:tokens) = do
     let (res, new_tokens) = parse_factor tokens
     if is_success res then
         (ParseSuccess (UnaryOpNode TMinus (get_ast res)), new_tokens)
     else
-        (res, new_tokens)
+        (res, [])
 
 parse_factor tokens = parse_power tokens
 
