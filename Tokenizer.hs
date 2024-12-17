@@ -15,7 +15,7 @@ tokenize (c:cs)
     | c == '^' = let (tokens, err) = tokenize cs in (TPow : tokens, err)
     | c == '(' = let (tokens, err) = tokenize cs in (TLParen : tokens, err)
     | c == ')' = let (tokens, err) = tokenize cs in (TRParen : tokens, err)
-    | c `elem` (['a'..'z'] ++ ['A'..'Z']) = tokenizeIdentifier (c:cs)
+    | c `elem` (['a'..'z'] ++ ['A'..'Z']) = tokenizeWord (c:cs)
     | c `elem` ['0'..'9'] = tokenizeNumber (c:cs)
     | c == '=' = tokenizeEq cs
     | c == '!' = tokenizeNotEq cs
@@ -25,19 +25,20 @@ tokenize (c:cs)
     | c == '|' = tokenizeOr cs
     | otherwise = ([], IllegalCharError ("Invalid: " ++ [c]))
 
-tokenizeIdentifier :: String -> ([Token], Error)
-tokenizeIdentifier str = do
+tokenizeWord :: String -> ([Token], Error)
+tokenizeWord str = do
     let (identifier, rest) = span (`elem` (['0'..'9'] ++ ['a'..'z'] ++ ['A'..'Z'] ++ "_")) str
     let token = get_keyword_or_identifier identifier
     let (tokens, err) = tokenize rest in (token: tokens, err)
 
 get_keyword_or_identifier :: String -> Token
-get_keyword_or_identifier str = 
+get_keyword_or_identifier str =
     case str of
-        "let" -> TKeyword_let
-        "if" -> TKeyword_if
+        "let"   -> TKeyword_let
+        "if"    -> TKeyword_if
         "while" -> TKeyword_while
-        "then" -> TKeyword_then
+        "then"  -> TKeyword_then
+        "else"  -> TKeyword_else
         _ -> TIdentifier str
 
 tokenizeNumber :: String -> ([Token], Error)

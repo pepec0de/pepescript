@@ -3,17 +3,18 @@ module Types where
 type Position = Int -- En un futuro: (Int, Int) (<Columna>, <Fila>)
 
 data Token = 
-    TKeyword_let        |
-    TKeyword_while      |
-    TKeyword_if         |
-    TKeyword_then       |
+    TKeyword_let        | -- let
+    TKeyword_while      | -- while
+    TKeyword_if         | -- if
+    TKeyword_then       | -- then
+    TKeyword_else       | -- else
     TIdentifier String  |
-    TInt Int            |
-    TFloat Float        |
-    TPlus               |
-    TMinus              |
-    TMult               |
-    TDiv                |
+    TInt Int            | -- 0
+    TFloat Float        | -- 0.0
+    TPlus               | -- +
+    TMinus              | -- -
+    TMult               | -- *
+    TDiv                | -- /
     TPow                | -- ^
     TLParen             | -- (
     TRParen             | -- )
@@ -43,7 +44,7 @@ data AST =
     UnaryOpNode Token AST   | -- UnaryOpNode(Operator, Tree)
     VarAccessNode Token     | -- VarAccessNode(Operator, var Token)
     VarAssignNode Token AST | -- VarAssignNode(var Identifier, Expression)
-    IfNode Case AST       | -- IfNode(Case, ElseCase)
+    IfNode Case AST         | -- IfNode(Case, Expression in else case)
     WhileNode AST AST
     deriving (Eq, Show)
 

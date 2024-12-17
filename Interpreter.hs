@@ -57,6 +57,27 @@ visit (VarAssignNode (TIdentifier identifier) ast) context = do
     else
         (expression_rt, context)
 
+visit (IfNode (condition_ast, expression_ast) else_ast) context = do
+    let (condition_rt, _) = visit condition_ast context
+    if is_success condition_rt then do
+        let (expression_rt, _) = visit expression_ast context
+        if is_success expression_rt then
+            if is_true (get_num condition_rt) then
+                (RTSuccess (get_num expression_rt), context)
+            else
+                if else_ast == Empty then
+                    (RTSuccess (Float 0), context)
+                else
+                    let (else_rt, _) = visit else_ast context in
+                    if is_success else_rt then do
+                        (RTSuccess (get_num else_rt), context)
+                    else
+                        (else_rt, context)
+        else
+            (expression_rt, context)
+    else
+        (condition_rt, context)
+
 visit _ context = (RTFailure (RuntimeError "Node implementation not implemented"), context)
 
 get_token_number :: Token -> Number
@@ -112,3 +133,7 @@ mAND (Float a) (Float b) = if a /= 0 && b /= 0 then Float 1 else Float 0
 
 mOR :: Number -> Number -> Number
 mOR (Float a) (Float b) = if a /= 0 || b /= 0 then Float 1 else Float 0
+
+is_true :: Number -> Bool
+is_true (Float 1) = True
+is_true _ = False

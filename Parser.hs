@@ -193,23 +193,35 @@ parse_atom (TKeyword_if:tokens) = parse_if_expr tokens
 parse_atom _ = (ParseFailure (InvalidSyntaxError "Expected a '+', '-', '(', number, 'let' or identifier)"), [])
 
 parse_if_expr :: [Token] -> (ParseResult, [Token])
-parse_if_expr tokens = do
-    let (condition_tokens, rest) = span (/=TKeyword_then) tokens 
-    if rest == [] then
-        (ParseFailure (InvalidSyntaxError "Expected keyword 'then' after if"), [])
-    else do
-        let (condition_res, new_tokens) = parse_expr condition_tokens
+parse_if_expr tokens = do -- TODO: understand why this works
+    let (condition_res, expression_tokens) = parse_expr tokens
+    if expression_tokens!!0 == TKeyword_then then -- check the 'then' keyword
         if is_success condition_res then do
             -- Parse expression after then
-            let (rest_res, new_tokens2) = parse_expr (drop 1 rest)
-            if is_success rest_res then
-                (ParseSuccess (IfNode ((get_ast condition_res), (get_ast rest_res)) Empty), new_tokens2)
+            let (expression_rest, else_tokens) = parse_expr (drop 1 expression_tokens) -- drop the 'then' keyword
+            if is_success expression_rest then do
+                if else_tokens!!0 == TKeyword_else then do
+                    let (else_res, new_tokens) = parse_else_expr (drop 1 else_tokens)
+                    if is_success else_res then
+                        (ParseSuccess (IfNode ((get_ast condition_res), (get_ast expression_rest)) (get_ast else_res)), new_tokens)
+                    else
+                        (else_res, [])
+                else
+                    (ParseSuccess (IfNode ((get_ast condition_res), (get_ast expression_rest)) Empty), else_tokens)
             else
-                (rest_res, [])
+                (expression_rest, [])
         else
             (condition_res, [])
+    else
+        (ParseFailure (InvalidSyntaxError "Expected keyword 'then' after expression of if clause"), [])
 
-    
+parse_else_expr :: [Token] -> (ParseResult, [Token])
+parse_else_expr tokens = do
+    let (else_res, new_tokens) = parse_expr tokens
+    if is_success else_res then
+        (else_res, new_tokens)
+    else
+        (else_res, [])
 
 -- Helper function for ParseResult
 is_success :: ParseResult -> Bool
