@@ -3,6 +3,10 @@ module Types where
 type Position = Int -- En un futuro: (Int, Int) (<Columna>, <Fila>)
 
 data Token = 
+    TKeyword_let |
+    TKeyword_while |
+    TKeyword_if |
+    TIdentifier String |
     TInt Int |
     TFloat Float |
     TPlus |
@@ -27,7 +31,9 @@ data AST =
     Empty |
     NumNode Token | -- NumNode (Number)
     BinOpNode Token AST AST | -- BinOpNode(Operator, left tree, right tree)
-    UnaryOpNode Token AST -- UnaryOpNode(Operador, tree)
+    UnaryOpNode Token AST | -- UnaryOpNode(Operador, tree)
+    VarAccessNode Token |
+    VarAssignNode Token AST -- VarAssignNode(Identifier, Expression)
     deriving (Eq, Show)
 
 data Error =
@@ -38,8 +44,8 @@ data Error =
     deriving (Eq, Show)
 
 data ParseResult =
-    Success AST |
-    Failure Error
+    ParseSuccess AST |
+    ParseFailure Error
     deriving (Eq, Show)
 
 data Number =
@@ -50,7 +56,4 @@ data Number =
 data RuntimeResult =
     RTSuccess Number |
     RTFailure Error 
-    deriving (Eq, Show)
-
-data Context = NoParent | Context String Context -- display_name, parent_context
     deriving (Eq, Show)

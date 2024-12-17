@@ -5,9 +5,13 @@ import Tokenizer
 import Parser
 import Interpreter
 import System.IO
+import Context
 
 main :: IO()
-main = do
+main = pepescript_cli (Context "<program>" NoParent [("null", Float 0)])
+
+pepescript_cli :: Context -> IO()
+pepescript_cli context = do
     putStr "> "
     hFlush stdout -- flush the buffer
     input <- getLine
@@ -21,10 +25,10 @@ main = do
         print (res)
         if Parser.is_success res then do
             -- Interpreting
-            let context = Context "<program>" NoParent
-            let ast_rt = visit (get_ast res) context
+            let (ast_rt, new_context) = visit (get_ast res) context
             print (ast_rt)
-            -- TODO : check runtime error
+            -- TODO : check runtime error (is printed anyway)
+            pepescript_cli new_context
         else
             -- Parse error
             print "Parse error"
@@ -32,4 +36,4 @@ main = do
         -- Tokenize error
         putStr "ERR "
         print error
-    main
+    pepescript_cli context 

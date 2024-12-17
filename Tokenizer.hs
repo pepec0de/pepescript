@@ -15,12 +15,23 @@ tokenize (c:cs)
     | c == '^' = let (tokens, err) = tokenize cs in (TPow : tokens, err)
     | c == '(' = let (tokens, err) = tokenize cs in (TLParen : tokens, err)
     | c == ')' = let (tokens, err) = tokenize cs in (TRParen : tokens, err)
+    | c `elem` (['a'..'z'] ++ ['A'..'Z']) = tokenizeIdentifier (c:cs)
     | c `elem` ['0'..'9'] = tokenizeNumber (c:cs)
     | c == '=' = tokenizeEq cs
     | c == '!' = tokenizeNotEq cs
     | c == '<' = tokenizeLess cs
     | c == '>' = tokenizeGreat cs
     | otherwise = ([], IllegalCharError ("Invalid: " ++ [c]))
+
+tokenizeIdentifier :: String -> ([Token], Error)
+tokenizeIdentifier str = do
+    let (identifier, rest) = span (`elem` (['0'..'9'] ++ ['a'..'z'] ++ ['A'..'Z'] ++ "_")) str
+    let token = get_keyword_or_identifier identifier
+    let (tokens, err) = tokenize rest in (token: tokens, err)
+
+get_keyword_or_identifier :: String -> Token
+get_keyword_or_identifier "let" = TKeyword_let
+get_keyword_or_identifier str = TIdentifier str
 
 tokenizeNumber :: String -> ([Token], Error)
 tokenizeNumber str = do
