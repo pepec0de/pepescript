@@ -21,6 +21,8 @@ tokenize (c:cs)
     | c == '!' = tokenizeNotEq cs
     | c == '<' = tokenizeLess cs
     | c == '>' = tokenizeGreat cs
+    | c == '&' = tokenizeAnd cs
+    | c == '|' = tokenizeOr cs
     | otherwise = ([], IllegalCharError ("Invalid: " ++ [c]))
 
 tokenizeIdentifier :: String -> ([Token], Error)
@@ -30,8 +32,12 @@ tokenizeIdentifier str = do
     let (tokens, err) = tokenize rest in (token: tokens, err)
 
 get_keyword_or_identifier :: String -> Token
-get_keyword_or_identifier "let" = TKeyword_let
-get_keyword_or_identifier str = TIdentifier str
+get_keyword_or_identifier str = 
+    case str of
+        "let" -> TKeyword_let
+        "if" -> TKeyword_if
+        "while" -> TKeyword_while
+        _ -> TIdentifier str
 
 tokenizeNumber :: String -> ([Token], Error)
 tokenizeNumber str = do
@@ -70,3 +76,11 @@ tokenizeGreat (c:cs) =
         let (tokens, err) = tokenize cs in (TGtEq : tokens, err)
     else
         let (tokens, err) = tokenize (c:cs) in (TGt : tokens, err)
+
+tokenizeAnd :: String -> ([Token], Error)
+tokenizeAnd ('&':cs) = let (tokens, err) = tokenize cs in (TAnd : tokens, err)
+tokenizeAnd (c:_) = ([], IllegalCharError ("Not supported operator: &" ++ [c]))
+
+tokenizeOr :: String -> ([Token], Error)
+tokenizeOr ('|':cs) = let (tokens, err) = tokenize cs in (TOr : tokens, err)
+tokenizeOr (c:_) = ([], IllegalCharError ("Not supported operator: |" ++ [c]))
