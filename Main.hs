@@ -12,7 +12,7 @@ main = pepescript_cli (Context "<program>" NoParent [("null", Float 0)])
 
 pepescript_cli :: Context -> IO()
 pepescript_cli context = do
-    putStr "> "
+    putStr "pepescript>> "
     hFlush stdout -- flush the buffer
     input <- getLine
 

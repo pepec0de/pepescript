@@ -141,7 +141,7 @@ parse_atom (TLParen:tokens) = do
 
 parse_atom (TRParen:[]) = (ParseFailure (InvalidSyntaxError "Unexpected \')\'"), [])
 
-parse_atom _ = (ParseFailure (InvalidSyntaxError "Expected a '+', '-', '(' or number)"), [])
+parse_atom _ = (ParseFailure (InvalidSyntaxError "Expected a '+', '-', '(', number, 'let' or identifier)"), [])
 
 -- Helper function for ParseResult
 is_success :: ParseResult -> Bool
