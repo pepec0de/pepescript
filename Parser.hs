@@ -22,6 +22,11 @@ power       : atom (POW factor)*
 
 atom        : INT | FLOAT -> NumNode
             : LPAREN expr RPAREN
+            : if-expr
+
+if-expr     : if expr then expr
+                (elif expr then expr)*
+                (else expr)
 -}
 
 -- Parser: Parses a list of tokens into an AST
@@ -39,9 +44,14 @@ parse tokens = do
         else
             res
 
-is_identifier :: Token -> Bool
-is_identifier (TIdentifier _) = True
-is_identifier _ = False
+parse_expr :: [Token] -> (ParseResult, [Token])
+parse_expr (TKeyword_let:tokens) = build_let_expr tokens
+parse_expr tokens = do
+    let (res_left, new_tokens) = parse_comp_expr tokens
+    if is_success res_left then
+        (build_expr_ast (get_ast res_left) new_tokens)
+    else
+        (res_left, [])
 
 -- METHOD FOR BUILDING THE LET AST
 build_let_expr :: [Token] -> (ParseResult, [Token])
@@ -53,16 +63,6 @@ build_let_expr (tok_identifier:tok_equals:tokens)
         else
             (expression, [])
     | otherwise = (ParseFailure (InvalidSyntaxError "Let clause must be: let IDENTIFIER = EXPRESSION"), [])
-        
-parse_expr :: [Token] -> (ParseResult, [Token])
-parse_expr (TKeyword_let:tokens) = build_let_expr tokens
-
-parse_expr tokens = do
-    let (res_left, new_tokens) = parse_comp_expr tokens
-    if is_success res_left then
-        (build_expr_ast (get_ast res_left) new_tokens)
-    else
-        (res_left, [])
 
 build_expr_ast :: AST -> [Token] -> (ParseResult, [Token])
 build_expr_ast left (tok:tokens)
@@ -189,8 +189,27 @@ parse_atom (TLParen:tokens) = do
             (ParseFailure (InvalidSyntaxError "Expected a \')\'"), [])
 
 parse_atom (TRParen:[]) = (ParseFailure (InvalidSyntaxError "Unexpected \')\'"), [])
-
+parse_atom (TKeyword_if:tokens) = parse_if_expr tokens
 parse_atom _ = (ParseFailure (InvalidSyntaxError "Expected a '+', '-', '(', number, 'let' or identifier)"), [])
+
+parse_if_expr :: [Token] -> (ParseResult, [Token])
+parse_if_expr tokens = do
+    let (condition_tokens, rest) = span (/=TKeyword_then) tokens 
+    if rest == [] then
+        (ParseFailure (InvalidSyntaxError "Expected keyword 'then' after if"), [])
+    else do
+        let (condition_res, new_tokens) = parse_expr condition_tokens
+        if is_success condition_res then do
+            -- Parse expression after then
+            let (rest_res, new_tokens2) = parse_expr (drop 1 rest)
+            if is_success rest_res then
+                (ParseSuccess (IfNode ((get_ast condition_res), (get_ast rest_res)) Empty), new_tokens2)
+            else
+                (rest_res, [])
+        else
+            (condition_res, [])
+
+    
 
 -- Helper function for ParseResult
 is_success :: ParseResult -> Bool

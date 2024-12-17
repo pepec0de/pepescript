@@ -6,6 +6,7 @@ data Token =
     TKeyword_let        |
     TKeyword_while      |
     TKeyword_if         |
+    TKeyword_then       |
     TIdentifier String  |
     TInt Int            |
     TFloat Float        |
@@ -29,13 +30,21 @@ data Token =
     TEOF
     deriving (Eq, Show)
 
+-- Methods for tokens
+is_identifier :: Token -> Bool
+is_identifier (TIdentifier _) = True
+is_identifier _ = False
+
+type Case = (AST, AST) -- (<Condition>, <Expression>)
 data AST =
     Empty |
-    NumNode Token | -- NumNode (Number)
-    BinOpNode Token AST AST | -- BinOpNode(Operator, left tree, right tree)
-    UnaryOpNode Token AST | -- UnaryOpNode(Operador, tree)
-    VarAccessNode Token |
-    VarAssignNode Token AST -- VarAssignNode(Identifier, Expression)
+    NumNode Token           | -- NumNode (Number)
+    BinOpNode Token AST AST | -- BinOpNode(Operator, leftTree, rightTree)
+    UnaryOpNode Token AST   | -- UnaryOpNode(Operator, Tree)
+    VarAccessNode Token     | -- VarAccessNode(Operator, var Token)
+    VarAssignNode Token AST | -- VarAssignNode(var Identifier, Expression)
+    IfNode Case AST       | -- IfNode(Case, ElseCase)
+    WhileNode AST AST
     deriving (Eq, Show)
 
 data Error =

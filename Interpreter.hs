@@ -12,7 +12,7 @@ visit (UnaryOpNode tok ast) context = do
         case tok of
             TPlus -> (RTSuccess num, context)
             TMinus -> (RTSuccess (mult (Float (-1)) num), context)
-            TNot -> (RTSuccess (n num), context)
+            TNot -> (RTSuccess (mNOT num), context)
             _ -> (RTFailure (RuntimeError "Invalid operator token for UnaryOpNode"), context)
     else
         (ast_rt, context)
@@ -35,6 +35,8 @@ visit (BinOpNode tok left right) context = do
             TLt -> (RTSuccess (lt left right), context)
             TGtEq -> (RTSuccess (gte left right), context)
             TLtEq -> (RTSuccess (lte left right), context)
+            TAnd -> (RTSuccess (mAND left right), context)
+            TOr -> (RTSuccess (mOR left right), context)
             _ -> (RTFailure (RuntimeError "Unrecognised token"), context)
     else
         (left_rt, context)
@@ -101,6 +103,12 @@ gte (Float a) (Float b) = if a >= b then Float 1 else Float 0
 lte :: Number -> Number -> Number
 lte (Float a) (Float b) = if a <= b then Float 1 else Float 0
 
-n :: Number -> Number
-n (Float 0) = Float 1
-n _ = Float 0
+mNOT :: Number -> Number
+mNOT (Float 0) = Float 1
+mNOT _ = Float 0
+
+mAND :: Number -> Number -> Number
+mAND (Float a) (Float b) = if a /= 0 && b /= 0 then Float 1 else Float 0
+
+mOR :: Number -> Number -> Number
+mOR (Float a) (Float b) = if a /= 0 || b /= 0 then Float 1 else Float 0

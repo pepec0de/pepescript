@@ -37,6 +37,7 @@ get_keyword_or_identifier str =
         "let" -> TKeyword_let
         "if" -> TKeyword_if
         "while" -> TKeyword_while
+        "then" -> TKeyword_then
         _ -> TIdentifier str
 
 tokenizeNumber :: String -> ([Token], Error)
