@@ -9,7 +9,7 @@ expr        : TKeyword:let IDENTIFIER TEq expr
             : comp-expr ((AND | OR) comp-expr)*
 
 comp-expr   : NOT comp-expr
-            : arith-expr ( (== | <(=) | >(=) ) arith-expr)*
+            : arith-expr ( ( == | <(=) | >(=) ) arith-expr )*
 
 arith-expr  : term ((PLUS | MINUS) term)* -> BinOpNode [+, -]
 
@@ -51,7 +51,7 @@ build_let_expr (tok_identifier:tok_equals:tokens)
         if is_success expression then
             (ParseSuccess (VarAssignNode tok_identifier (get_ast expression)), rest)
         else
-            (expression, rest)
+            (expression, [])
     | otherwise = (ParseFailure (InvalidSyntaxError "Let clause must be: let IDENTIFIER = EXPRESSION"), [])
         
 parse_expr :: [Token] -> (ParseResult, [Token])
@@ -93,7 +93,7 @@ parse_comp_expr (tok:tokens)
 build_comp_expr :: AST -> [Token] -> (ParseResult, [Token])
 build_comp_expr left (tok:tokens)
     | tok `elem` [TEqEq, TNotEq, TLt, TLtEq, TGt, TGtEq] = do
-        let (res_right, new_tokens) = parse_comp_expr tokens
+        let (res_right, new_tokens) = parse_arith_expr tokens
         if is_success res_right then
             build_comp_expr (BinOpNode tok left (get_ast res_right)) new_tokens
         else
@@ -104,7 +104,7 @@ parse_arith_expr :: [Token] -> (ParseResult, [Token])
 parse_arith_expr tokens = do
     let (res_left, new_tokens) = parse_term tokens
     if is_success res_left then
-        (build_expr_ast (get_ast res_left) new_tokens)
+        (build_arith_expr_ast (get_ast res_left) new_tokens)
     else
         (res_left, [])
 
