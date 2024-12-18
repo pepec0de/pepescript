@@ -64,20 +64,21 @@ parse_term :: [Token] -> (ParseResult, [Token])
 parse_term tokens = bin_op parse_factor [TMult, TDiv] parse_factor tokens
 
 parse_power :: [Token] -> (ParseResult, [Token])
-parse_power tokens = bin_op parse_atom [TPow] parse_factor tokens
+parse_power tokens = bin_op parse_call [TPow] parse_factor tokens
 
-{-
 parse_call :: [Token] -> (ParseResult, [Token])
 parse_call tokens = do
     let (res_left, new_tokens) = parse_atom tokens
-    if is_success res_left then
-        build_call_ast (get_ast res_left) new_tokens
-    else
+    if not $ is_success res_left then
         (res_left, [])
+    else
+        if new_tokens!!0 == TLParen then
+            -- Grab CallNode
 
-build_call_ast :: AST -> [Token] -> (ParseResult, [Token])
-build_call_ast tokens = do
--}
+        else
+            -- Return atom
+            (res_left, new_tokens)
+
 
 parse_factor :: [Token] -> (ParseResult, [Token])
 parse_factor (tok:tokens)

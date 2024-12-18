@@ -39,6 +39,7 @@ get_keyword_or_identifier str =
         "while" -> TKeyword_while
         "then"  -> TKeyword_then
         "else"  -> TKeyword_else
+        "Infinity" -> TFloat (1/0)
         _ -> TIdentifier str
 
 tokenizeNumber :: String -> ([Token], Error)
