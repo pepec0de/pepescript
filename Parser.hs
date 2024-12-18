@@ -6,14 +6,11 @@ import Types
 parse :: [Token] -> ParseResult
 parse tokens = do
     let (res, new_tokens) = parse_expr tokens
-    if new_tokens /= [TEOF] then
-        if is_success res then
-            (ParseFailure (InvalidSyntaxError "Unrecognisable error"))
-        else
-            res
+    if not $ is_success res then
+        res
     else
-        if is_success res then
-            res
+        if new_tokens /= [TEOF] then
+            (ParseFailure (InvalidSyntaxError "Unrecognisable error"))
         else
             res
 
@@ -72,13 +69,16 @@ parse_call tokens = do
     if not $ is_success res_left then
         (res_left, [])
     else
-        if new_tokens!!0 == TLParen then
+        if new_tokens!!0 == TLParen then do
             -- Grab CallNode
-
+            let new_tokens2 = drop 1 new_tokens
+            if new_tokens2!!0 == TRParen then
+                (ParseSuccess (CallFuncNode (get_ast res_left) []), drop 1 new_tokens2)
+            else
+                (ParseFailure (InvalidSyntaxError "Function arguments are not still supported"), [])
         else
             -- Return atom
             (res_left, new_tokens)
-
 
 parse_factor :: [Token] -> (ParseResult, [Token])
 parse_factor (tok:tokens)
