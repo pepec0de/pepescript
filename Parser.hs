@@ -23,10 +23,13 @@ power       : atom (POW factor)*
 atom        : INT | FLOAT -> NumNode
             : LPAREN expr RPAREN
             : if-expr
+            : while-expr
 
 if-expr     : if expr then expr
-                (elif expr then expr)*
-                (else expr)
+                (else expr)?
+
+while-expr  : while expr then expr
+
 -}
 
 -- Parser: Parses a list of tokens into an AST
@@ -190,6 +193,7 @@ parse_atom (TLParen:tokens) = do
 
 parse_atom (TRParen:[]) = (ParseFailure (InvalidSyntaxError "Unexpected \')\'"), [])
 parse_atom (TKeyword_if:tokens) = parse_if_expr tokens
+parse_atom (TKeyword_while:tokens) = parse_while_expr tokens
 parse_atom _ = (ParseFailure (InvalidSyntaxError "Expected a '+', '-', '(', number, 'let' or identifier)"), [])
 
 parse_if_expr :: [Token] -> (ParseResult, [Token])
@@ -198,18 +202,18 @@ parse_if_expr tokens = do -- TODO: understand why this works
     if expression_tokens!!0 == TKeyword_then then -- check the 'then' keyword
         if is_success condition_res then do
             -- Parse expression after then
-            let (expression_rest, else_tokens) = parse_expr (drop 1 expression_tokens) -- drop the 'then' keyword
-            if is_success expression_rest then do
+            let (expression_res, else_tokens) = parse_expr (drop 1 expression_tokens) -- drop the 'then' keyword
+            if is_success expression_res then do
                 if else_tokens!!0 == TKeyword_else then do
                     let (else_res, new_tokens) = parse_else_expr (drop 1 else_tokens)
                     if is_success else_res then
-                        (ParseSuccess (IfNode ((get_ast condition_res), (get_ast expression_rest)) (get_ast else_res)), new_tokens)
+                        (ParseSuccess (IfNode ((get_ast condition_res), (get_ast expression_res)) (get_ast else_res)), new_tokens)
                     else
                         (else_res, [])
                 else
-                    (ParseSuccess (IfNode ((get_ast condition_res), (get_ast expression_rest)) Empty), else_tokens)
+                    (ParseSuccess (IfNode ((get_ast condition_res), (get_ast expression_res)) Empty), else_tokens)
             else
-                (expression_rest, [])
+                (expression_res, [])
         else
             (condition_res, [])
     else
@@ -222,6 +226,22 @@ parse_else_expr tokens = do
         (else_res, new_tokens)
     else
         (else_res, [])
+
+parse_while_expr :: [Token] -> (ParseResult, [Token])
+parse_while_expr tokens = do
+    let (condition_res, expression_tokens) = parse_expr tokens
+    if expression_tokens!!0 == TKeyword_then then -- check the 'then' keyword
+        if is_success condition_res then do
+            -- Parse expression after then
+            let (expression_res, new_tokens) = parse_expr (drop 1 expression_tokens) -- drop the 'then' keyword
+            if is_success expression_res then do
+                (ParseSuccess (WhileNode (get_ast condition_res) (get_ast expression_res)), new_tokens)
+            else
+                (expression_res, [])
+        else
+            (condition_res, [])
+    else
+        (ParseFailure (InvalidSyntaxError "Expected keyword 'then' after expression of while clause"), [])
 
 -- Helper function for ParseResult
 is_success :: ParseResult -> Bool

@@ -38,14 +38,14 @@ is_identifier _ = False
 
 type Case = (AST, AST) -- (<Condition>, <Expression>)
 data AST =
-    Empty |
     NumNode Token           | -- NumNode (Number)
     BinOpNode Token AST AST | -- BinOpNode(Operator, leftTree, rightTree)
     UnaryOpNode Token AST   | -- UnaryOpNode(Operator, Tree)
     VarAccessNode Token     | -- VarAccessNode(Operator, var Token)
     VarAssignNode Token AST | -- VarAssignNode(var Identifier, Expression)
     IfNode Case AST         | -- IfNode(Case, Expression in else case)
-    WhileNode AST AST
+    WhileNode AST AST       | -- WhileNode(Condition, Expression)
+    Empty
     deriving (Eq, Show)
 
 data Error =

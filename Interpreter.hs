@@ -78,6 +78,26 @@ visit (IfNode (condition_ast, expression_ast) else_ast) context = do
     else
         (condition_rt, context)
 
+visit (WhileNode condition_ast expression_ast) context = loop context where
+    loop currentContext = do
+        -- Evaluate the condition
+        let (condition_rt, updatedContext) = visit condition_ast currentContext
+        if not (is_success condition_rt) then
+            -- If condition evaluation fails, return the failure
+            (condition_rt, updatedContext)
+        else if not (is_true (get_num condition_rt)) then
+            -- If condition is false, terminate the loop successfully
+            (RTSuccess (Float 0), updatedContext)
+        else do
+            -- Execute the body of the loop
+            let (body_rt, newContext) = visit expression_ast updatedContext
+            if not (is_success body_rt) then
+                -- If body evaluation fails, return the failure
+                (body_rt, newContext)
+            else
+                -- Continue the loop with the updated context
+                loop newContext
+
 visit _ context = (RTFailure (RuntimeError "Node implementation not implemented"), context)
 
 get_token_number :: Token -> Number

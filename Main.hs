@@ -8,7 +8,7 @@ import System.IO
 import Context
 
 main :: IO()
-main = pepescript_cli (Context "<program>" NoParent [("null", Float 0)])
+main = pepescript_cli (Context "<program>" NoParent [("true", Float 1), ("false", Float 0)])
 
 pepescript_cli :: Context -> IO()
 pepescript_cli context = do
