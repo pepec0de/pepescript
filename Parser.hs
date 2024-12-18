@@ -2,36 +2,6 @@ module Parser where
 
 import Types
 
-{-
-Grammar
-
-expr        : TKeyword:let IDENTIFIER TEq expr
-            : comp-expr ((AND | OR) comp-expr)*
-
-comp-expr   : NOT comp-expr
-            : arith-expr ( ( == | <(=) | >(=) ) arith-expr )*
-
-arith-expr  : term ((PLUS | MINUS) term)* -> BinOpNode [+, -]
-
-term        : factor ((MUL | DIV) factor)* -> BinOpNode [*, /]
-
-factor      : (PLUS | MINUS) factor
-            : power
-
-power       : atom (POW factor)*
-
-atom        : INT | FLOAT -> NumNode
-            : LPAREN expr RPAREN
-            : if-expr
-            : while-expr
-
-if-expr     : if expr then expr
-                (else expr)?
-
-while-expr  : while expr then expr
-
--}
-
 -- Parser: Parses a list of tokens into an AST
 parse :: [Token] -> ParseResult
 parse tokens = do
