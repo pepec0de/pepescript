@@ -20,7 +20,9 @@ term        : factor ((MUL | DIV) factor)* -> BinOpNode [*, /]
 factor      : (PLUS | MINUS) factor
             : power
 
-power       : atom (POW factor)*
+power       : call (POW factor)*
+
+call        : atom (LPAREN (expr (COMMA expr)*)? RPAREN)?
 
 atom        : INT | FLOAT -> NumNode
             : LPAREN expr RPAREN

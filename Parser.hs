@@ -113,7 +113,7 @@ build_term_ast left (tok:tokens) = do
 
 parse_power :: [Token] -> (ParseResult, [Token])
 parse_power tokens = do
-    let (res_left, new_tokens) = parse_atom tokens
+    let (res_left, new_tokens) = parse_call tokens
     if is_success res_left then
         build_power_ast (get_ast res_left) new_tokens
     else
@@ -121,13 +121,23 @@ parse_power tokens = do
 
 build_power_ast :: AST -> [Token] -> (ParseResult, [Token])
 build_power_ast left (TPow:tokens) = do
-    let (res_right, new_tokens) = parse_atom tokens
+    let (res_right, new_tokens) = parse_call tokens
     if is_success res_right then
         build_power_ast (BinOpNode TPow left (get_ast res_right)) new_tokens
     else
         (res_right, [])
-
 build_power_ast left tokens = (ParseSuccess left, tokens)
+
+parse_call :: [Token] -> (ParseResult, [Token])
+parse_call tokens = do
+    let (res_left, new_tokens) = parse_atom tokens
+    if is_success res_left then
+        build_call_ast (get_ast res_left) new_tokens
+    else
+        (res_left, [])
+
+build_call_ast :: AST -> [Token] -> (ParseResult, [Token])
+build_call_ast tokens = do
 
 parse_factor :: [Token] -> (ParseResult, [Token])
 parse_factor (TPlus:tokens) = do

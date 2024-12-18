@@ -36,7 +36,7 @@ is_identifier :: Token -> Bool
 is_identifier (TIdentifier _) = True
 is_identifier _ = False
 
-type Case = (AST, AST) -- (<Condition>, <Expression>)
+type Case = (AST, AST) -- (Condition Expression, Exec Expression)
 data AST =
     NumNode Token           | -- NumNode (Number)
     BinOpNode Token AST AST | -- BinOpNode(Operator, leftTree, rightTree)
@@ -44,7 +44,8 @@ data AST =
     VarAccessNode Token     | -- VarAccessNode(Operator, var Token)
     VarAssignNode Token AST | -- VarAssignNode(var Identifier, Expression)
     IfNode Case AST         | -- IfNode(Case, Expression in else case)
-    WhileNode AST AST       | -- WhileNode(Condition, Expression)
+    WhileNode AST AST       | -- WhileNode(Condition Expression, Exec Expression)
+    CallFuncNode AST [AST]  | -- CallFuncNode(FuncIdentifier, [Arguments])
     Empty
     deriving (Eq, Show)
 

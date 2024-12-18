@@ -2,10 +2,11 @@ module Main where
 
 import Types
 import Tokenizer
-import Parser
+--import Parser
 import Interpreter
 import System.IO
 import Context
+import NewParser
 
 main :: IO()
 main = pepescript_cli (Context "<program>" NoParent [("true", Float 1), ("false", Float 0)])
@@ -23,7 +24,7 @@ pepescript_cli context = do
         -- Parsing
         let res = parse tokens
         print (res)
-        if Parser.is_success res then do
+        if NewParser.is_success res then do
             -- Interpreting
             let (ast_rt, new_context) = visit (get_ast res) context
             print (ast_rt)
