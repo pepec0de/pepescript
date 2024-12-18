@@ -8,7 +8,7 @@ parse tokens = do
     let (res, new_tokens) = parse_expr tokens
     if new_tokens /= [TEOF] then
         if is_success res then
-            (ParseFailure (InvalidSyntaxError "Must reach EOF"))
+            (ParseFailure (InvalidSyntaxError "Unrecognisable error"))
         else
             res
     else
@@ -17,18 +17,26 @@ parse tokens = do
         else
             res
 
-parse_expr :: [Token] -> (ParseResult, [Token])
-parse_expr (TKeyword_let:tokens) = build_let_expr tokens
-parse_expr tokens = do
-    let (res_left, new_tokens) = parse_comp_expr tokens
-    if is_success res_left then
-        (build_expr_ast (get_ast res_left) new_tokens)
+bin_op :: ([Token] -> (ParseResult, [Token])) -> [Token] -> ([Token] -> (ParseResult, [Token])) -> [Token] -> (ParseResult, [Token])
+bin_op func_left ops func_right tokens = do
+    -- Parse the left-hand side
+    let (left_res, left_tokens) = func_left tokens
+    if not $ is_success left_res then
+        (left_res, [])
     else
-        (res_left, [])
+        parseRest (get_ast left_res) left_tokens
+    where
+        parseRest left (tok:left_tokens)
+            | tok `elem` ops = do
+                let (right_res, right_tokens) = func_right left_tokens
+                if not $ is_success right_res then
+                    (right_res, [])
+                else
+                    parseRest (BinOpNode tok left (get_ast right_res)) right_tokens
+            | otherwise = (ParseSuccess left, (tok:left_tokens))
 
--- METHOD FOR BUILDING THE LET AST
-build_let_expr :: [Token] -> (ParseResult, [Token])
-build_let_expr (tok_identifier:tok_equals:tokens)
+parse_expr :: [Token] -> (ParseResult, [Token])
+parse_expr (TKeyword_let:tok_identifier:tok_equals:tokens)
     | is_identifier tok_identifier && tok_equals == TEq = do
         let (expression, rest) = parse_expr tokens
         if is_success expression then
@@ -36,16 +44,7 @@ build_let_expr (tok_identifier:tok_equals:tokens)
         else
             (expression, [])
     | otherwise = (ParseFailure (InvalidSyntaxError "Let clause must be: let IDENTIFIER = EXPRESSION"), [])
-
-build_expr_ast :: AST -> [Token] -> (ParseResult, [Token])
-build_expr_ast left (tok:tokens)
-    | tok == TAnd || tok == TOr = do
-        let (res_right, new_tokens) = parse_comp_expr tokens
-        if is_success res_right then
-            (build_expr_ast (BinOpNode tok left (get_ast res_right)) new_tokens)
-        else
-            (res_right, [])
-    | otherwise = (ParseSuccess left, (tok:tokens))
+parse_expr tokens = bin_op parse_comp_expr [TAnd, TOr] parse_comp_expr tokens
 
 parse_comp_expr :: [Token] -> (ParseResult, [Token])
 parse_comp_expr (tok:tokens)
@@ -55,79 +54,19 @@ parse_comp_expr (tok:tokens)
             (ParseSuccess (UnaryOpNode TNot (get_ast res)), new_tokens)
         else
             (res, [])
-
-    | otherwise = do
-        let (res, new_tokens) = parse_arith_expr (tok:tokens)
-        if is_success res then
-            (build_comp_expr (get_ast res) new_tokens)
-        else
-            (res, [])
-
-build_comp_expr :: AST -> [Token] -> (ParseResult, [Token])
-build_comp_expr left (tok:tokens)
-    | tok `elem` [TEqEq, TNotEq, TLt, TLtEq, TGt, TGtEq] = do
-        let (res_right, new_tokens) = parse_arith_expr tokens
-        if is_success res_right then
-            build_comp_expr (BinOpNode tok left (get_ast res_right)) new_tokens
-        else
-            (res_right, [])
-    | otherwise = (ParseSuccess left, (tok:tokens))
+    | otherwise = bin_op parse_arith_expr [TEqEq, TNotEq, TLt, TLtEq, TGt, TGtEq] parse_arith_expr (tok:tokens)
 
 parse_arith_expr :: [Token] -> (ParseResult, [Token])
-parse_arith_expr tokens = do
-    let (res_left, new_tokens) = parse_term tokens
-    if is_success res_left then
-        (build_arith_expr_ast (get_ast res_left) new_tokens)
-    else
-        (res_left, [])
-
-build_arith_expr_ast :: AST -> [Token] -> (ParseResult, [Token])
-build_arith_expr_ast left (tok:tokens)
-    | tok == TPlus || tok == TMinus = do
-        let (res_right, new_tokens) = parse_term tokens
-        if is_success res_right then
-            build_arith_expr_ast (BinOpNode tok left (get_ast res_right)) new_tokens
-        else
-            (res_right, [])
-    | otherwise = (ParseSuccess left, (tok:tokens))
+parse_arith_expr tokens = bin_op parse_term [TPlus, TMinus] parse_term tokens
 
 -- Parse a term (supports multiplication and division)
 parse_term :: [Token] -> (ParseResult, [Token])
-parse_term tokens = do
-    let (res_left, new_tokens) = parse_factor tokens
-    if is_success res_left then
-        build_term_ast (get_ast res_left) new_tokens
-    else
-        (res_left, [])
-
-build_term_ast :: AST -> [Token] -> (ParseResult, [Token])
-build_term_ast left (tok:tokens) = do
-    if tok == TMult || tok == TDiv then do
-        let (res_right, new_tokens) = parse_factor tokens
-        if is_success res_right then
-            build_term_ast (BinOpNode tok left (get_ast res_right)) new_tokens
-        else
-            (res_right, [])
-    else
-        (ParseSuccess left, (tok:tokens))
+parse_term tokens = bin_op parse_factor [TMult, TDiv] parse_factor tokens
 
 parse_power :: [Token] -> (ParseResult, [Token])
-parse_power tokens = do
-    let (res_left, new_tokens) = parse_call tokens
-    if is_success res_left then
-        build_power_ast (get_ast res_left) new_tokens
-    else
-        (res_left, [])
+parse_power tokens = bin_op parse_atom [TPow] parse_factor tokens
 
-build_power_ast :: AST -> [Token] -> (ParseResult, [Token])
-build_power_ast left (TPow:tokens) = do
-    let (res_right, new_tokens) = parse_call tokens
-    if is_success res_right then
-        build_power_ast (BinOpNode TPow left (get_ast res_right)) new_tokens
-    else
-        (res_right, [])
-build_power_ast left tokens = (ParseSuccess left, tokens)
-
+{-
 parse_call :: [Token] -> (ParseResult, [Token])
 parse_call tokens = do
     let (res_left, new_tokens) = parse_atom tokens
@@ -138,23 +77,17 @@ parse_call tokens = do
 
 build_call_ast :: AST -> [Token] -> (ParseResult, [Token])
 build_call_ast tokens = do
+-}
 
 parse_factor :: [Token] -> (ParseResult, [Token])
-parse_factor (TPlus:tokens) = do
-    let (res, new_tokens) = parse_factor tokens
-    if is_success res then
-        (ParseSuccess (UnaryOpNode TPlus (get_ast res)), new_tokens)
-    else
-        (res, [])
-
-parse_factor (TMinus:tokens) = do
-    let (res, new_tokens) = parse_factor tokens
-    if is_success res then
-        (ParseSuccess (UnaryOpNode TMinus (get_ast res)), new_tokens)
-    else
-        (res, [])
-
-parse_factor tokens = parse_power tokens
+parse_factor (tok:tokens)
+    | tok `elem` [TPlus, TMinus] = do
+        let (res, new_tokens) = parse_factor tokens
+        if is_success res then
+            (ParseSuccess (UnaryOpNode tok (get_ast res)), new_tokens)
+        else
+            (res, [])
+    | otherwise = parse_power (tok:tokens)
 
 parse_atom :: [Token] -> (ParseResult, [Token])
 parse_atom ((TInt n):tokens) = (ParseSuccess (NumNode (TInt n)), tokens)
@@ -167,7 +100,7 @@ parse_atom (TLParen:tokens) = do
         (ParseFailure (InvalidSyntaxError "Expected expression"), [])
     else
         if (new_tokens!!0) == TRParen then
-            (ParseSuccess (get_ast res), (tail new_tokens)) -- tail gives Warning TODO: fix it
+            (ParseSuccess (get_ast res), (drop 1 new_tokens)) -- tail gives Warning TODO: fix it
         else
             (ParseFailure (InvalidSyntaxError "Expected a \')\'"), [])
 
