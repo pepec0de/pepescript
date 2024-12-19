@@ -32,8 +32,37 @@ atom        : INT | FLOAT -> NumNode
             : if-expr
             : while-expr
 
-if-expr     : if expr LBRACKET statements RBRACKET -> IfNode
+if-expr     : if expr LBRACKET expr RBRACKET -> IfNode
                 (else expr)?
 
 while-expr  : while expr LBRACKET statements RBRACKET -> WhileNode
 ``` 
+
+### Examples
+
+* Fibonacci(n):
+```
+let n = 6; 
+let a = 0; 
+let fib = 1; 
+let c = 0;
+
+while n != 1 { 
+	let c = a + fib;
+	let a = fib; 
+	let fib = c; 
+	let n = n - 1
+}
+```
+
+* Factorial(n):
+```
+let n = 5;
+let r = 1;
+let i = 1;
+
+while i <= n {
+    let r = r * i;
+    let i = i + 1
+}
+```
