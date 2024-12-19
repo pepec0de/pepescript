@@ -135,16 +135,16 @@ parse_if_expr tokens = do -- TODO: understand why this works
     if expression_tokens!!0 == TLBracket then -- check the 'then' keyword
         if is_success condition_res then do
             -- Parse expression after then
-            let (expression_res, else_tokens) = parse_statements (drop 1 expression_tokens) -- drop the 'then' keyword
+            let (expression_res, else_tokens) = parse_expr (drop 1 expression_tokens) -- drop the 'then' keyword
             if is_success expression_res then do
                 if else_tokens!!0 == TKeyword_else then do
                     let (else_res, new_tokens) = parse_else_expr (drop 1 else_tokens)
                     if is_success else_res then
-                        (ParseSuccess [(IfNode ((get_ast condition_res), (get_ast_list expression_res)) (get_ast_list else_res))], new_tokens)
+                        (ParseSuccess [(IfNode ((get_ast condition_res), (get_ast expression_res)) (get_ast else_res))], new_tokens)
                     else
                         (else_res, [])
                 else
-                    (ParseSuccess [(IfNode ((get_ast condition_res), (get_ast_list expression_res)) [])], else_tokens)
+                    (ParseSuccess [(IfNode ((get_ast condition_res), (get_ast expression_res)) Empty)], else_tokens)
             else
                 (expression_res, [])
         else
@@ -166,7 +166,7 @@ parse_while_expr tokens = do
     if expression_tokens!!0 == TLBracket then -- check the 'then' keyword
         if is_success condition_res then do
             -- Parse expression after then
-            let (expression_res, new_tokens) = parse_expr (drop 1 expression_tokens) -- drop the 'then' keyword
+            let (expression_res, new_tokens) = parse_statements (drop 1 expression_tokens) -- drop the 'then' keyword
             if is_success expression_res then do
                 (ParseSuccess [(WhileNode (get_ast condition_res) (get_ast_list expression_res))], new_tokens)
             else

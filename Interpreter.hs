@@ -3,11 +3,34 @@ module Interpreter where
 import Types
 import Context
 
-proc_forest :: [AST] -> Context -> ([RuntimeResult], Context)
-proc_forest [] context = ([], context)
-proc_forest (tree:forest) context = let (rt, new_context) = (visit tree context) in
-    let (forest_results, final_context) = proc_forest forest new_context in 
-        (rt:forest_results, final_context)
+visit_forest :: [AST] -> Context -> ([RuntimeResult], Context)
+visit_forest [] context = ([], context)
+
+visit_forest ((WhileNode condition_ast expression_ast):forest) context = loop context where
+    loop currentContext = do
+        -- Evaluate the condition
+        let (condition_rt, updatedContext) = visit condition_ast currentContext
+        if not (is_success condition_rt) then
+            -- If condition evaluation fails, return the failure
+            ([condition_rt], updatedContext)
+        else if not (is_true (get_num condition_rt)) then
+            -- If condition is false, terminate the loop successfully
+            let (next_rt, final_context) = visit_forest forest updatedContext in
+            (((RTSuccess (Float 0)):next_rt), final_context)
+        else do
+            -- Execute the body of the loop
+            let (body_rt, newContext) = visit_forest expression_ast updatedContext
+            if not (is_success (body_rt!!0)) then
+                -- If body evaluation fails, return the failure
+                (body_rt, newContext)
+            else
+                -- Continue the loop with the updated context
+                loop newContext
+                
+visit_forest (tree:forest) context = do
+    let (rt, new_context) = visit tree context 
+    let (next_rt, final_context) = visit_forest forest new_context
+    (rt:next_rt, final_context)
 
 visit :: AST -> Context -> (RuntimeResult, Context)
 visit (NumNode tok) context = (RTSuccess (get_token_number tok), context)
@@ -62,12 +85,12 @@ visit (VarAssignNode (TIdentifier identifier) ast) context = do
     else
         (expression_rt, context)
 
-{- visit (IfNode (condition_ast, expression_ast) else_ast) context = do
+visit (IfNode (condition_ast, expression_ast) else_ast) context = do
     -- Evaluate the condition
     let (condition_rt, new_context) = visit condition_ast context
     if is_success condition_rt then do
         -- Evaluate expression node
-        let (expression_rt, new_context2) = proc_forest expression_ast new_context        
+        let (expression_rt, new_context2) = visit expression_ast new_context        
         if is_success expression_rt then
             if is_true (get_num condition_rt) then
                 -- Execute the body if it's true
@@ -90,26 +113,6 @@ visit (VarAssignNode (TIdentifier identifier) ast) context = do
     else
         -- If condition evaluation fails, return the failure
         (condition_rt, context)
-
-visit (WhileNode condition_ast expression_ast) context = loop context where
-    loop currentContext = do
-        -- Evaluate the condition
-        let (condition_rt, updatedContext) = visit condition_ast currentContext
-        if not (is_success condition_rt) then
-            -- If condition evaluation fails, return the failure
-            (condition_rt, updatedContext)
-        else if not (is_true (get_num condition_rt)) then
-            -- If condition is false, terminate the loop successfully
-            (RTSuccess (Float 0), updatedContext)
-        else do
-            -- Execute the body of the loop
-            let (body_rt, newContext) = visit expression_ast updatedContext
-            if not (is_success body_rt) then
-                -- If body evaluation fails, return the failure
-                (body_rt, newContext)
-            else
-                -- Continue the loop with the updated context
-                loop newContext -}
 
 visit _ context = (RTFailure (RuntimeError "Node implementation not implemented"), context)
 

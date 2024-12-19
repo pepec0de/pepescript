@@ -27,7 +27,7 @@ pepescript_cli context = do
             print (res)
             if Parser.is_success res then do
                 -- Interpreting
-                let (ast_rt, new_context) = visit (get_ast res) context -- proc_forest (get_ast_list res) context
+                let (ast_rt, new_context) = visit_forest (get_ast_list res) context
                 print (ast_rt)
                 -- TODO : check runtime error (is printed anyway)
                 pepescript_cli new_context

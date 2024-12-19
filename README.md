@@ -32,8 +32,8 @@ atom        : INT | FLOAT -> NumNode
             : if-expr
             : while-expr
 
-if-expr     : if expr then statements -> IfNode
+if-expr     : if expr LBRACKET statements RBRACKET -> IfNode
                 (else expr)?
 
-while-expr  : while expr then statements -> WhileNode
-```
+while-expr  : while expr LBRACKET statements RBRACKET -> WhileNode
+``` 

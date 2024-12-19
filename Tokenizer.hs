@@ -5,9 +5,7 @@ import Types
 tokenize :: String -> ([Token], Error)
 tokenize "" = ([TEOF], None)
 tokenize (c:cs)
-    | c == ' ' = tokenize cs
-    | c == '\n' = tokenize cs
-    | c == '\t' = tokenize cs
+    | c `elem` " \t\n" = tokenize cs
     | c == '+' = let (tokens, err) = tokenize cs in (TPlus : tokens, err)
     | c == '-' = let (tokens, err) = tokenize cs in (TMinus : tokens, err)
     | c == '*' = let (tokens, err) = tokenize cs in (TMult : tokens, err)
