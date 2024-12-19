@@ -7,6 +7,8 @@ A new interpreter built on Haskell
 ### Pepescript Grammar
 
 ```
+statements  : SEMICOLON* expr (SEMICOLON expr)* -> multiple lines
+
 expr        : TKeyword:let IDENTIFIER TEq expr -> VarAssignNode
             : comp-expr ((AND | OR) comp-expr)* -> BinOpNode [&&, ||]
 
@@ -30,8 +32,8 @@ atom        : INT | FLOAT -> NumNode
             : if-expr
             : while-expr
 
-if-expr     : if expr then expr -> IfNode
+if-expr     : if expr then statements -> IfNode
                 (else expr)?
 
-while-expr  : while expr then expr -> WhileNode
+while-expr  : while expr then statements -> WhileNode
 ```

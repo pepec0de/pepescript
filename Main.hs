@@ -15,25 +15,27 @@ pepescript_cli context = do
     putStr "pepescript>> "
     hFlush stdout -- flush the buffer
     input <- getLine
-
-    -- Tokenizing
-    let (tokens, error) = tokenize input
-    print tokens -- debug
-    if tokens /= [] && error == None then do
-        -- Parsing
-        let res = parse tokens
-        print (res)
-        if Parser.is_success res then do
-            -- Interpreting
-            let (ast_rt, new_context) = visit (get_ast res) context
-            print (ast_rt)
-            -- TODO : check runtime error (is printed anyway)
-            pepescript_cli new_context
-        else
-            -- Parse error
-            print "Parse error"
+    if input == "" then
+        pepescript_cli context
     else do
-        -- Tokenize error
-        putStr "ERR "
-        print error
+        -- Tokenizing
+        let (tokens, error) = tokenize input
+        print tokens -- debug
+        if tokens /= [] && error == None then do
+            -- Parsing
+            let res = parse tokens
+            print (res)
+            if Parser.is_success res then do
+                -- Interpreting
+                let (ast_rt, new_context) = visit (get_ast res) context -- proc_forest (get_ast_list res) context
+                print (ast_rt)
+                -- TODO : check runtime error (is printed anyway)
+                pepescript_cli new_context
+            else
+                -- Parse error
+                print "Parse error"
+        else do
+            -- Tokenize error
+            putStr "ERR "
+            print error
     pepescript_cli context 

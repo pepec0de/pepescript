@@ -28,6 +28,7 @@ data Token =
     TLtEq               | -- <=
     TAnd                | -- &&
     TOr                 | -- ||
+    TSemicolon          | -- ;
     TEOF
     deriving (Eq, Show)
 
@@ -36,15 +37,15 @@ is_identifier :: Token -> Bool
 is_identifier (TIdentifier _) = True
 is_identifier _ = False
 
-type Case = (AST, AST) -- (Condition Expression, Exec Expression)
+type Case = (AST, [AST]) -- (Condition Expression, Exec Expression)
 data AST =
     NumNode Token           | -- NumNode (Number)
     BinOpNode Token AST AST | -- BinOpNode(Operator, leftTree, rightTree)
     UnaryOpNode Token AST   | -- UnaryOpNode(Operator, Tree)
     VarAccessNode Token     | -- VarAccessNode(Operator, var Token)
     VarAssignNode Token AST | -- VarAssignNode(var Identifier, Expression)
-    IfNode Case AST         | -- IfNode(Case, Expression in else case)
-    WhileNode AST AST       | -- WhileNode(Condition Expression, Exec Expression)
+    IfNode Case [AST]       | -- IfNode(Case, Expression in else case)
+    WhileNode AST [AST]     | -- WhileNode(Condition Expression, Exec Expression)
     CallFuncNode AST [AST]  | -- CallFuncNode(FuncIdentifier, [Arguments])
     Empty
     deriving (Eq, Show)
@@ -57,7 +58,7 @@ data Error =
     deriving (Eq, Show)
 
 data ParseResult =
-    ParseSuccess AST |
+    ParseSuccess [AST] |
     ParseFailure Error
     deriving (Eq, Show)
 

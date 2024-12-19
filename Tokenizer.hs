@@ -23,6 +23,7 @@ tokenize (c:cs)
     | c == '>' = tokenizeGreat cs
     | c == '&' = tokenizeAnd cs
     | c == '|' = tokenizeOr cs
+    | c == ';' = let (tokens, err) = tokenize cs in (TSemicolon : tokens, err)
     | otherwise = ([], IllegalCharError ("Invalid: " ++ [c]))
 
 tokenizeWord :: String -> ([Token], Error)

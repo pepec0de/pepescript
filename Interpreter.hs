@@ -3,6 +3,12 @@ module Interpreter where
 import Types
 import Context
 
+proc_forest :: [AST] -> Context -> ([RuntimeResult], Context)
+proc_forest [] context = ([], context)
+proc_forest (tree:forest) context = let (rt, new_context) = (visit tree context) in
+    let (forest_results, final_context) = proc_forest forest new_context in 
+        (rt:forest_results, final_context)
+
 visit :: AST -> Context -> (RuntimeResult, Context)
 visit (NumNode tok) context = (RTSuccess (get_token_number tok), context)
 visit (UnaryOpNode tok ast) context = do
@@ -56,25 +62,33 @@ visit (VarAssignNode (TIdentifier identifier) ast) context = do
     else
         (expression_rt, context)
 
-visit (IfNode (condition_ast, expression_ast) else_ast) context = do
+{- visit (IfNode (condition_ast, expression_ast) else_ast) context = do
+    -- Evaluate the condition
     let (condition_rt, new_context) = visit condition_ast context
     if is_success condition_rt then do
-        let (expression_rt, new_context2) = visit expression_ast new_context
+        -- Evaluate expression node
+        let (expression_rt, new_context2) = proc_forest expression_ast new_context        
         if is_success expression_rt then
             if is_true (get_num condition_rt) then
+                -- Execute the body if it's true
                 (RTSuccess (get_num expression_rt), new_context2)
             else
+                -- If condition is false, check the else node
                 if else_ast == Empty then
+                    -- If there is no else node return null
                     (RTSuccess (Float 0), new_context2)
                 else
+                    -- Evaluate else expression
                     let (else_rt, new_context3) = visit else_ast new_context2 in
                     if is_success else_rt then do
+                        -- Return else node if there is else
                         (RTSuccess (get_num else_rt), new_context3)
                     else
                         (else_rt, new_context2)
         else
             (expression_rt, new_context)
     else
+        -- If condition evaluation fails, return the failure
         (condition_rt, context)
 
 visit (WhileNode condition_ast expression_ast) context = loop context where
@@ -95,7 +109,7 @@ visit (WhileNode condition_ast expression_ast) context = loop context where
                 (body_rt, newContext)
             else
                 -- Continue the loop with the updated context
-                loop newContext
+                loop newContext -}
 
 visit _ context = (RTFailure (RuntimeError "Node implementation not implemented"), context)
 
