@@ -22,4 +22,4 @@ get_symbol_table (Context _ _ symbol_table) = symbol_table
 
 add_var_to_context :: Context -> String -> Number -> Context
 add_var_to_context (Context name parent symbol_table) var num = 
-    Context name parent (var, num):symbol_table
+    (Context name parent ((var, num):symbol_table))

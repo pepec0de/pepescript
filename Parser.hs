@@ -33,7 +33,7 @@ bin_op func_left ops func_right tokens = do
             | otherwise = (ParseSuccess left, (tok:left_tokens))
 
 parse_expr :: [Token] -> (ParseResult, [Token])
-parse_expr (TKeyword_let:tok_identifier:tok_equals:tokens)
+parse_expr (TKeyword_let:tok_identifier:tok_equals:tokens) -- BUILD LET clause
     | is_identifier tok_identifier && tok_equals == TEq = do
         let (expression, rest) = parse_expr tokens
         if is_success expression then
@@ -75,7 +75,7 @@ parse_call tokens = do
             if new_tokens2!!0 == TRParen then
                 (ParseSuccess (CallFuncNode (get_ast res_left) []), drop 1 new_tokens2)
             else
-                (ParseFailure (InvalidSyntaxError "Function arguments are not still supported"), [])
+                (ParseFailure (InvalidSyntaxError "Function arguments are not supported yet"), [])
         else
             -- Return atom
             (res_left, new_tokens)
@@ -101,7 +101,7 @@ parse_atom (TLParen:tokens) = do
         (ParseFailure (InvalidSyntaxError "Expected expression"), [])
     else
         if (new_tokens!!0) == TRParen then
-            (ParseSuccess (get_ast res), (drop 1 new_tokens)) -- tail gives Warning TODO: fix it
+            (ParseSuccess (get_ast res), (drop 1 new_tokens))
         else
             (ParseFailure (InvalidSyntaxError "Expected a \')\'"), [])
 

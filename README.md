@@ -2,13 +2,13 @@
 A new interpreter built on Haskell
 
 ### TODO List
-* Fix troubleshooting with command: "let"
+* ~Fix troubleshooting with command: "let"~
 
 ### Pepescript Grammar
 
 ```
-expr        : TKeyword:let IDENTIFIER TEq expr
-            : comp-expr ((AND | OR) comp-expr)*
+expr        : TKeyword:let IDENTIFIER TEq expr -> VarAssignNode
+            : comp-expr ((AND | OR) comp-expr)* -> BinOpNode [&&, ||]
 
 comp-expr   : NOT comp-expr
             : arith-expr ( ( == | <(=) | >(=) ) arith-expr )*
@@ -17,20 +17,21 @@ arith-expr  : term ((PLUS | MINUS) term)* -> BinOpNode [+, -]
 
 term        : factor ((MUL | DIV) factor)* -> BinOpNode [*, /]
 
-factor      : (PLUS | MINUS) factor
+factor      : (PLUS | MINUS) factor -> UnaryOpNode
             : power
 
-power       : call (POW factor)*
+power       : call (POW factor)* -> BinOpNode [^]
 
-call        : atom (LPAREN (expr (COMMA expr)*)? RPAREN)?
+call        : atom (LPAREN (expr (COMMA expr)*)? RPAREN -> CallNode )?
 
 atom        : INT | FLOAT -> NumNode
             : LPAREN expr RPAREN
+            : IDENTIFIER -> VarAccessNode
             : if-expr
             : while-expr
 
-if-expr     : if expr then expr
+if-expr     : if expr then expr -> IfNode
                 (else expr)?
 
-while-expr  : while expr then expr
+while-expr  : while expr then expr -> WhileNode
 ```
