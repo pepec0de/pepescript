@@ -46,7 +46,8 @@ parse_statements tokens = do
                     (next_res, final_tokens)
                 else
                     (ParseSuccess ((get_ast_list res) ++ (get_ast_list next_res)), final_tokens)
-            (TEOF:_) -> (res, new_tokens)
+            (TRBracket:rest) -> (res, rest)
+            (TEOF:[]) -> (res, new_tokens)
             _ ->
                 (res, new_tokens)
 
@@ -131,7 +132,7 @@ parse_atom _ = (ParseFailure (InvalidSyntaxError "Expected a '+', '-', '(', numb
 parse_if_expr :: [Token] -> (ParseResult, [Token])
 parse_if_expr tokens = do -- TODO: understand why this works
     let (condition_res, expression_tokens) = parse_expr tokens
-    if expression_tokens!!0 == TKeyword_then then -- check the 'then' keyword
+    if expression_tokens!!0 == TLBracket then -- check the 'then' keyword
         if is_success condition_res then do
             -- Parse expression after then
             let (expression_res, else_tokens) = parse_statements (drop 1 expression_tokens) -- drop the 'then' keyword
@@ -162,7 +163,7 @@ parse_else_expr tokens = do
 parse_while_expr :: [Token] -> (ParseResult, [Token])
 parse_while_expr tokens = do
     let (condition_res, expression_tokens) = parse_expr tokens
-    if expression_tokens!!0 == TKeyword_then then -- check the 'then' keyword
+    if expression_tokens!!0 == TLBracket then -- check the 'then' keyword
         if is_success condition_res then do
             -- Parse expression after then
             let (expression_res, new_tokens) = parse_expr (drop 1 expression_tokens) -- drop the 'then' keyword

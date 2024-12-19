@@ -24,6 +24,8 @@ tokenize (c:cs)
     | c == '&' = tokenizeAnd cs
     | c == '|' = tokenizeOr cs
     | c == ';' = let (tokens, err) = tokenize cs in (TSemicolon : tokens, err)
+    | c == '{' = let (tokens, err) = tokenize cs in (TLBracket : tokens, err)
+    | c == '}' = let (tokens, err) = tokenize cs in (TRBracket : tokens, err)
     | otherwise = ([], IllegalCharError ("Invalid: " ++ [c]))
 
 tokenizeWord :: String -> ([Token], Error)
@@ -38,7 +40,6 @@ get_keyword_or_identifier str =
         "let"   -> TKeyword_let
         "if"    -> TKeyword_if
         "while" -> TKeyword_while
-        "then"  -> TKeyword_then
         "else"  -> TKeyword_else
         "Infinity" -> TFloat (1/0)
         _ -> TIdentifier str

@@ -29,6 +29,8 @@ data Token =
     TAnd                | -- &&
     TOr                 | -- ||
     TSemicolon          | -- ;
+    TLBracket           | -- {
+    TRBracket           | -- }
     TEOF
     deriving (Eq, Show)
 
